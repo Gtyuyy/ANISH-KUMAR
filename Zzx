@@ -19,41 +19,31 @@ STYLE = """
         background-size: cover; filter: brightness(0.5); z-index: -1;
     }
     
-    /* PRECISE HEADER DESIGN AS PER REQUEST */
+    /* Updated Header Design */
     header {
-        background: white; padding: 12px 15px; display: flex;
+        background: white; padding: 10px 15px; display: flex;
         justify-content: space-between; align-items: center;
-        border-bottom: 2px solid #e0e0e0;
+        border-bottom: 1.5px solid #e0e0e0;
     }
     .header-left { display: flex; align-items: center; gap: 15px; }
-    
     .garena-brand { display: flex; flex-direction: column; align-items: center; }
-    .garena-brand img { height: 50px; margin-bottom: -4px; } /* Eyes and Logo Bada */
-    .garena-brand span { 
-        color: #ed1c24; font-size: 14px; font-weight: 800; 
-        font-family: sans-serif; border-bottom: 2px solid #28a745; /* Green hint as requested */
-        line-height: 1;
-    } 
-    
-    .divider { width: 1.5px; height: 55px; background: #ddd; margin: 0 5px; }
-    
+    .garena-brand img { height: 35px; margin-bottom: -5px; }
+    .garena-brand span { color: #ed1c24; font-size: 10px; font-weight: 700; font-family: sans-serif; }
+    .divider { width: 1px; height: 35px; background: #ddd; }
     .topup-text { 
-        color: #333; font-size: 24px; font-weight: 700; 
+        color: #333; font-size: 18px; font-weight: 600; 
         line-height: 1.1; font-family: 'Poppins', sans-serif;
-    } 
-
+    }
     .help-btn {
-        background: #0056b3; color: white; padding: 8px 20px; 
-        border-radius: 6px; font-size: 14px; text-decoration: none; font-weight: 700;
+        background: #0056b3; color: white; padding: 6px 15px; 
+        border-radius: 5px; font-size: 13px; text-decoration: none; font-weight: 600;
     }
 
-    /* REST OF THE UI REMAINS UNTOUCHED */
     .container { max-width: 400px; margin: auto; padding: 10px; }
     .game-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
     .game-item { text-align: center; text-decoration: none; color: white; transition: 0.2s; }
     .game-item img { width: 60px; height: 60px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.3); object-fit: cover; }
     .game-item p { font-size: 8px; margin-top: 5px; font-weight: 600; text-transform: uppercase; }
-    
     .reward-card {
         background: #ffffff; border-radius: 20px; padding: 22px 18px; width: 88%; margin: auto;
         box-shadow: 0 15px 40px rgba(0,0,0,0.5);
